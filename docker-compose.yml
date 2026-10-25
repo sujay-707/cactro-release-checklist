@@ -2,9 +2,10 @@
 services:
   server:
     build: ./server
+    env_file:
+      - ./server/.env
     environment:
       PORT: 4000
-      DATABASE_URL: ${DATABASE_URL}
       CLIENT_URL: ${CLIENT_URL:-http://localhost:8080}
     ports:
       - "4000:4000"
