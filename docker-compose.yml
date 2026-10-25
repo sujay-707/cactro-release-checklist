@@ -1,0 +1,22 @@
+
+services:
+  server:
+    build: ./server
+    environment:
+      PORT: 4000
+      DATABASE_URL: ${DATABASE_URL}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:8080}
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+      args:
+        VITE_GRAPHQL_URL: ${VITE_GRAPHQL_URL:-http://localhost:4000/graphql}
+    ports:
+      - "8080:80"
+    depends_on:
+      - server
+    restart: unless-stopped
