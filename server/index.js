@@ -242,14 +242,36 @@ async function start() {
 
   await server.start();
 
-  app.use(
-    cors({
-      origin: process.env.CLIENT_URL?.split(",") ?? [
-        "http://localhost:5173",
-        "http://localhost:5174",
-      ],
-    }),
-  );
+   
+const allowedOrigins = (
+  process.env.CLIENT_URL ||
+  "http://localhost:5173,http://localhost:5174"
+)
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
+      return callback(null, true);
+    }
+
+    console.error(`CORS blocked origin: ${origin}`);
+    return callback(new Error("Origin not allowed by CORS"));
+  },
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Apollo-Require-Preflight",
+  ],
+  credentials: false,
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+app.options("/graphql", cors(corsOptions));
 
   app.use(express.json({ limit: "100kb" }));
 
